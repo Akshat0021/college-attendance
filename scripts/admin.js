@@ -5,7 +5,7 @@
 // ====================================================
 const SUPABASE_URL = 'https://samikiantytgcxlbtqnp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhbWlraWFudHl0Z2N4bGJ0cW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MTU2NTMsImV4cCI6MjA3Mjk5MTY1M30.VDbliaiLO0km0UAAnJe0fejYHHVVgc5c_DCBrePW29I';
-const FACE_API_URL = 'http://localhost:5000'; // URL of your insightface Python API
+const FACE_API_URL = 'http://localhost:5000'; // Use the Vercel API route
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -57,6 +57,7 @@ async function initializePage() {
     document.getElementById('settings-form').addEventListener('submit', handleGeneralSettingsForm);
     document.getElementById('whatsapp-settings-form').addEventListener('submit', handleWhatsappSettingsForm);
     document.getElementById('manual-alert-btn').addEventListener('click', sendLowAttendanceAlerts);
+    document.getElementById('whatsapp-enabled').addEventListener('change', toggleWhatsappControls);
     
     // Attendance filter listeners
     const attendanceClassEl = document.getElementById('attendance-class');
@@ -78,6 +79,26 @@ async function initializePage() {
     
     showTab('dashboard'); 
 }
+
+// ====================================================
+// UI INTERACTIVITY
+// ====================================================
+
+function toggleWhatsappControls() {
+    const isEnabled = document.getElementById('whatsapp-enabled').checked;
+    const controlsContainer = document.getElementById('whatsapp-controls-container');
+
+    // Toggle opacity for visual feedback
+    controlsContainer.style.opacity = isEnabled ? '1' : '0.5';
+    
+    // Get all buttons and inputs within the container
+    const inputs = controlsContainer.querySelectorAll('input, button');
+    
+    inputs.forEach(input => {
+        input.disabled = !isEnabled;
+    });
+}
+
 
 // ====================================================
 // UTILITY & TAB MANAGEMENT
@@ -456,7 +477,8 @@ async function loadSettings() {
     }
 
     document.getElementById('late-time').value = '';
-    document.getElementById('whatsapp-enabled').checked = false;
+    const whatsappEnabledCheckbox = document.getElementById('whatsapp-enabled');
+    whatsappEnabledCheckbox.checked = false;
     document.getElementById('consecutive-absence-days').value = '';
     document.getElementById('low-attendance-threshold').value = '';
 
@@ -465,7 +487,7 @@ async function loadSettings() {
             document.getElementById('late-time').value = setting.setting_value;
         }
         if (setting.setting_key === 'whatsapp_enabled') {
-            document.getElementById('whatsapp-enabled').checked = setting.setting_value === 'true';
+            whatsappEnabledCheckbox.checked = setting.setting_value === 'true';
         }
         if (setting.setting_key === 'consecutive_absence_days') {
             document.getElementById('consecutive-absence-days').value = setting.setting_value;
@@ -474,6 +496,9 @@ async function loadSettings() {
             document.getElementById('low-attendance-threshold').value = setting.setting_value;
         }
     });
+    
+    // Trigger the toggle function to set the initial state of the controls
+    toggleWhatsappControls();
 }
 
 
